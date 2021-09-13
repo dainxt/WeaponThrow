@@ -9,9 +9,9 @@ https://www.curseforge.com/minecraft/mc-mods/weapon-throw
 To use the mod in modding enviroment, [cursemaven](https://www.cursemaven.com/) can be used. Go to build.gradle and something like this can be implemented
 on the dependencies part.
 ```
-compileOnly fg.deobf("curse.maven:weaponthrow-408332:3421020")
+compileOnly fg.deobf("curse.maven:weaponthrow-408332:3458711")
 ```
-When the gradle project is refreshed it will download WeaponThrow 4.4 for 1.16.4 and can be referenced by the project. More information about syntax is founded on the cursemaven page.
+When the gradle project is refreshed it will download WeaponThrow 4.5 for 1.16.4/5 and can be referenced by the project. More information about syntax is founded on the cursemaven page.
 
 Modders may evaluate:
 ```
