@@ -1,31 +1,54 @@
 package com.dainxt.weaponthrow.packets;
 
-import java.util.function.Supplier;
-
 import com.dainxt.weaponthrow.handlers.EventsHandler;
+import com.dainxt.weaponthrow.handlers.PacketHandler;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
-public class CPacketThrow {
-	private final int action;
+public class CPacketThrow extends BasePacket {
 	
-	public CPacketThrow(int action) {
-		this.action = action;
+	public enum State {
+		   NONE((byte)0),
+		   START((byte)1),
+		   DURING((byte)2),
+		   FINISH((byte)3);
+		
+		   private byte index;
+		   private State(byte i) {
+			   this.index = i;
+
+		  }
+		  public byte toByte() {
+				return index;
+		  }
+
+		  public static State fromByte(int index) {
+			  for(State equipmentslottype : State.values()) {
+				  if(equipmentslottype.toByte() == index) {
+					  return equipmentslottype;
+				  }
+			  }
+			  return NONE;
+			  
+		  }
 	}
 	
-	public static void encode(CPacketThrow msg, PacketBuffer buf) {
-		buf.writeInt(msg.action);
+	public CPacketThrow(State state) {
+		super(PacketHandler.CPACKET_THROW);
+		buf.writeByte(state.toByte());
 	}
 
-	public static CPacketThrow decode(PacketBuffer buf) {
-		return new CPacketThrow(buf.readInt());
+	public static void register() {
+		
+		ServerPlayNetworking.registerGlobalReceiver(PacketHandler.CPACKET_THROW, (server, player, handler, buf, responseSender) -> {
+			CPacketThrow.State action = CPacketThrow.State.fromByte(buf.readByte());
+			
+			server.execute(() -> {
+				
+				EventsHandler.onThrowItem(player, action);
+			});
+		});
+		
 	}
 
-	public static void handle(CPacketThrow msg, Supplier<NetworkEvent.Context> ctx) {
-		if (ctx.get().getDirection().getReceptionSide().isServer()) {
-			ctx.get().enqueueWork(() -> EventsHandler.onThrowItem(ctx.get().getSender(), msg.action));
-		}
-		ctx.get().setPacketHandled(true);
-	}
 }

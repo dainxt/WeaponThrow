@@ -1,28 +1,28 @@
 package com.dainxt.weaponthrow.enchantment;
 
-import com.dainxt.weaponthrow.config.WeaponThrowConfig;
+import com.dainxt.weaponthrow.handlers.ConfigRegistry;
 
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentType;
-import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.enchantment.EnchantmentTarget;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.ItemStack;
 
 public class ThrowEnchantment extends Enchantment {
 
-		   public ThrowEnchantment(Enchantment.Rarity rarityIn, EquipmentSlotType... slots) {
-		      super(rarityIn, EnchantmentType.WEAPON, slots);
+		   public ThrowEnchantment(Enchantment.Rarity rarityIn, EquipmentSlot... slots) {
+		      super(rarityIn, EnchantmentTarget.WEAPON, slots);
 		   }
 
 		   /**
 		    * Returns the minimal value of enchantability needed on the enchantment level passed.
 		    */
-		   public int getMinEnchantability(int enchantmentLevel) {
+		   public int getMinPower(int enchantmentLevel) {
 		      return 10;
 		   }
 
-		   public int getMaxEnchantability(int enchantmentLevel) {
-		      return this.getMinEnchantability(enchantmentLevel) + 40;
+		   public int getMaxPower(int enchantmentLevel) {
+		      return this.getMinPower(enchantmentLevel) + 40;
 		   }
 
 		   /**
@@ -33,10 +33,10 @@ public class ThrowEnchantment extends Enchantment {
 		   }
 		   
 		   @Override
-			public boolean canApply(ItemStack stack) {
-			   boolean enchantAll = WeaponThrowConfig.COMMON.enchantAll.get();
+			public boolean isAcceptableItem(ItemStack stack) {
+			   boolean enchantAll = ConfigRegistry.COMMON.getConfig().enchantments.enchantAllWeapons;
 			   boolean isAxe = stack.getItem() instanceof AxeItem;
-			   boolean canApply = super.canApply(stack);
-			   return isAxe || canApply || enchantAll ? WeaponThrowConfig.COMMON.throwEnchant.get() : false;
+			   boolean canApply = super.isAcceptableItem(stack);
+			   return isAxe || canApply || enchantAll ? ConfigRegistry.COMMON.getConfig().enchantments.enableThrow : false;
 			}
 }

@@ -1,35 +1,33 @@
 package com.dainxt.weaponthrow.packets;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
 import com.dainxt.weaponthrow.handlers.EventsHandler;
+import com.dainxt.weaponthrow.handlers.PacketHandler;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
-public class SPacketThrow {
-	private final int progress;
-	private UUID playerAnimated;
+public class SPacketThrow extends BasePacket {
 	
-	public SPacketThrow(UUID player, int maxTime) {
-		this.progress = maxTime;
-		this.playerAnimated = player;
-	}
-	
-	public static void encode(SPacketThrow msg, PacketBuffer buf) {
-		buf.writeString(msg.playerAnimated.toString());
-		buf.writeInt(msg.progress);
+	public SPacketThrow(UUID uuid, int maxChargeTime, boolean isCharging) {
+		super(PacketHandler.SPACKET_THROW);
+		buf.writeUuid(uuid);
+		buf.writeVarInt(maxChargeTime);
+		buf.writeBoolean(isCharging);
 	}
 
-	public static SPacketThrow decode(PacketBuffer buf) {
-		return new SPacketThrow(UUID.fromString(buf.readString()), buf.readInt());
+	public static void register() {
+		
+		ClientPlayNetworking.registerGlobalReceiver(PacketHandler.SPACKET_THROW, (client, handler, buf, responseSender) -> {
+			UUID uuid = buf.readUuid();
+			int maxChargeTime = buf.readVarInt();
+			boolean isCharging = buf.readBoolean();
+			
+			client.execute(() -> {
+				EventsHandler.onSeverUpdate(uuid, maxChargeTime, isCharging);
+			});
+		});
+		
 	}
 
-	public static void handle(SPacketThrow msg, Supplier<NetworkEvent.Context> ctx) {
-		if (ctx.get().getDirection().getReceptionSide().isClient()) {
-			ctx.get().enqueueWork(() -> EventsHandler.onSeverUpdate(msg.playerAnimated, msg.progress));
-		}
-		ctx.get().setPacketHandled(true);
-	}
 }
