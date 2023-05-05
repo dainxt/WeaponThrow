@@ -1,25 +1,26 @@
 package com.dainxt.weaponthrow.enchantment;
 
-import com.dainxt.weaponthrow.config.WeaponThrowConfig;
+import com.dainxt.weaponthrow.handlers.ConfigRegistry;
 
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentType;
-import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.enchantment.EnchantmentTarget;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.ItemStack;
 
 public class ConccusionEnchantment extends Enchantment {
 
-		   public ConccusionEnchantment(Enchantment.Rarity rarityIn, EquipmentSlotType... slots) {
-		      super(rarityIn, EnchantmentType.WEAPON, slots);
+		   public ConccusionEnchantment(Enchantment.Rarity rarityIn, EquipmentSlot... slots) {
+		      super(rarityIn, EnchantmentTarget.WEAPON, slots);
 		   }
 
-		   public int getMinEnchantability(int enchantmentLevel) {
+		   public int getMinPower(int enchantmentLevel) {
 		      return 30;
 		   }
 
-		   public int getMaxEnchantability(int enchantmentLevel) {
-		      return this.getMinEnchantability(enchantmentLevel) + 30;
+		   
+		   public int getMaxPower(int enchantmentLevel) {
+		      return this.getMinPower(enchantmentLevel) + 30;
 		   }
 
 		   /**
@@ -29,12 +30,13 @@ public class ConccusionEnchantment extends Enchantment {
 		      return 2;
 		   }
 		   
+		   
 		   @Override
-		   public boolean canApply(ItemStack stack) {
-			   boolean enchantAll = WeaponThrowConfig.COMMON.enchantAll.get();
+		   public boolean isAcceptableItem(ItemStack stack) {
+			   boolean enchantAll = ConfigRegistry.COMMON.getConfig().enchantments.enchantAllWeapons;
 			   boolean isAxe = stack.getItem() instanceof AxeItem;
-			   boolean canApply = super.canApply(stack);
-			   return isAxe || canApply || enchantAll ? WeaponThrowConfig.COMMON.conccusionEnchant.get() : false;
+			   boolean canApply = super.isAcceptableItem(stack);
+			   return (isAxe || canApply || enchantAll) && ConfigRegistry.COMMON.getConfig().enchantments.enableConccusion;
 		   }
 
 }

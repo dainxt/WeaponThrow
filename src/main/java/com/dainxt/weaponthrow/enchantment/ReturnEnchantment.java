@@ -1,28 +1,28 @@
 package com.dainxt.weaponthrow.enchantment;
 
-import com.dainxt.weaponthrow.config.WeaponThrowConfig;
+import com.dainxt.weaponthrow.handlers.ConfigRegistry;
 
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentType;
-import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.enchantment.EnchantmentTarget;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.ItemStack;
 
 public class ReturnEnchantment extends Enchantment {
 
 
-		   public ReturnEnchantment(Rarity rarityIn, EquipmentSlotType... mainhand) {
-			   super(rarityIn, EnchantmentType.WEAPON, mainhand);
+		   public ReturnEnchantment(Rarity rarityIn, EquipmentSlot... mainhand) {
+			   super(rarityIn, EnchantmentTarget.WEAPON, mainhand);
 		   }
 		   
 		   /**
 		    * Returns the minimal value of enchantability needed on the enchantment level passed.
 		    */
-		   public int getMinEnchantability(int enchantmentLevel) {
+		   public int getMinPower(int enchantmentLevel) {
 		      return 5 + enchantmentLevel * 7;
 		   }
 
-		   public int getMaxEnchantability(int enchantmentLevel) {
+		   public int getMaxPower(int enchantmentLevel) {
 		      return 50;
 		   }
 
@@ -34,11 +34,11 @@ public class ReturnEnchantment extends Enchantment {
 		   }
 		   
 		   @Override
-		   public boolean canApply(ItemStack stack) {
-			   boolean enchantAll = WeaponThrowConfig.COMMON.enchantAll.get();
+		   public boolean isAcceptableItem(ItemStack stack) {
+			   boolean enchantAll = ConfigRegistry.COMMON.getConfig().enchantments.enchantAllWeapons;
 			   boolean isAxe = stack.getItem() instanceof AxeItem;
-			   boolean canApply = super.canApply(stack);
-			   return isAxe || canApply || enchantAll ? WeaponThrowConfig.COMMON.returnEnchant.get() : false;
+			   boolean canApply = super.isAcceptableItem(stack);
+			   return (isAxe || canApply || enchantAll) && ConfigRegistry.COMMON.getConfig().enchantments.enableReturn;
 		   }
 
 }

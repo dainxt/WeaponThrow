@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "weaponthrow",
+  "version": "${version}",
+
+  "name": "Weapon Throw",
+  "description": "Throw your items and weapons in another way",
+  "authors": [
+    "dainxt"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/weaponthrowlite/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+
+  "license": "CC0-1.0",
+  "icon": "assets/weaponthrow/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.dainxt.weaponthrow.WeaponThrow"
+    ],
+
+    "client": [
+      "com.dainxt.weaponthrow.ClientMod"
+    ],
+
+    "modmenu": [
+      "com.dainxt.weaponthrow.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "weaponthrow.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.12+",
+    "fabric": "*",
+    "minecraft": "1.19.2",
+    "java": ">=17"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

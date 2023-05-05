@@ -1,196 +1,131 @@
 package com.dainxt.weaponthrow.handlers;
 
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
-import com.dainxt.weaponthrow.WeaponThrow;
-import com.dainxt.weaponthrow.capabilities.ThrowProvider;
-import com.dainxt.weaponthrow.config.WeaponThrowConfig;
-import com.dainxt.weaponthrow.events.WeaponThrowEvent;
-import com.dainxt.weaponthrow.events.WeaponThrowEvent.TestThrow;
-import com.dainxt.weaponthrow.interfaces.IThrowPower;
-import com.dainxt.weaponthrow.packets.CPacketThrow;
-import com.dainxt.weaponthrow.packets.SPacketThrow;
+import com.dainxt.weaponthrow.capabilities.PlayerThrowData;
+import com.dainxt.weaponthrow.interfaces.IPlayerEntityMixin;
 import com.dainxt.weaponthrow.projectile.WeaponThrowEntity;
-import com.dainxt.weaponthrow.util.Reference;
+import com.dainxt.weaponthrow.events.OnApplySlow;
+import com.dainxt.weaponthrow.events.OnFOVUpdate;
+import com.dainxt.weaponthrow.events.OnHeldItemRender;
+import com.dainxt.weaponthrow.events.OnStartPlayerRender;
+import com.dainxt.weaponthrow.events.OnStartPlayerTick;
+import com.dainxt.weaponthrow.packets.CPacketThrow;
+import com.dainxt.weaponthrow.packets.CPacketThrow.State;
+import com.dainxt.weaponthrow.packets.SPacketThrow;
 import com.google.common.collect.Multimap;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 
-import harmonised.pmmo.config.JType;
-import harmonised.pmmo.skills.Skill;
-import harmonised.pmmo.util.XP;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
-import net.minecraft.client.gui.IngameGui;
-import net.minecraft.client.renderer.entity.model.BipedModel;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ai.attributes.Attribute;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.Attributes;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.render.entity.model.BipedEntityModel;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.entity.projectile.AbstractArrowEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.Item;
+import net.minecraft.item.AxeItem;
+import net.minecraft.item.HoeItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.HandSide;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.item.PickaxeItem;
+import net.minecraft.item.ShovelItem;
+import net.minecraft.item.SwordItem;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Arm;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.GameType;
-import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.FOVUpdateEvent;
-import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
-import net.minecraftforge.client.event.InputUpdateEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
-import net.minecraftforge.client.event.RenderPlayerEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.ToolType;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.TickEvent.PlayerTickEvent;
-import net.minecraftforge.event.entity.item.ItemTossEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
+import net.minecraft.util.math.Vec3f;
 
-public class EventsHandler {
+public class EventsHandler{
 	
-	public static final ResourceLocation THROWPOWER = new ResourceLocation(Reference.MODID, "throw_power");
-	
-	public static final int ITEMPHYSICSBLOCKING = -32;
-	
-	//ClientSide
-	public boolean wasPressed = false;
-	
-	public float clientSideCharge;
-	
-	public static void onThrowItem(ServerPlayerEntity playerentity, int action) {
-		
-		World worldIn = playerentity.world;
-		ItemStack stack = playerentity.getHeldItemMainhand();
-		
-		boolean isThrowable = WeaponThrowConfig.COMMON.shouldThrowItemsToo.get();
-		for(Item item: WeaponThrowConfig.COMMON.whiteList.get()) {
-			if(stack.getItem().equals(item)){
-				isThrowable = true;
-			}
-		}
+	public static boolean wasPressed = false;
 
-		if(ModList.get().isLoaded("pmmo") && WeaponThrowConfig.COMMON.enablePMMOIntegration.get()) {
+	public static void onThrowItem(ServerPlayerEntity serverplayer, CPacketThrow.State action){
+
+
+		ServerWorld world = serverplayer.getWorld();
+		ItemStack stack = ((PlayerEntity) serverplayer).getMainHandStack();
+		
+		boolean isThrowable = ConfigRegistry.COMMON.get().experimental.shouldThrowItemsToo;
+		
+		Multimap<EntityAttribute, EntityAttributeModifier> multimap = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
+		boolean haveAttributes = multimap.containsKey(EntityAttributes.GENERIC_ATTACK_DAMAGE) || multimap.containsKey(EntityAttributes.GENERIC_ATTACK_SPEED);
+		
+		PlayerThrowData data = ((IPlayerEntityMixin) (PlayerEntity) serverplayer).getThrowPower();
+		
+		if ((isThrowable || haveAttributes) && !stack.isEmpty()) {
 			
-			ResourceLocation resLoc = playerentity.getHeldItemMainhand().getItem().getRegistryName();
-            Map<String, Double> weaponReq = XP.getJsonMap( resLoc, JType.REQ_WEAPON );
-            double reqLevel = 0;
-            
-            if(weaponReq.containsKey(Skill.COMBAT.name.toLowerCase())) {
-            	reqLevel = weaponReq.get(Skill.COMBAT.name.toLowerCase());
-            }
-            
-			int combatLevel = Skill.getLevel(Skill.COMBAT.name.toLowerCase(), playerentity.getUniqueID());
+			boolean cdConfig = ConfigRegistry.COMMON.get().general.notUseWhenCooldown;
 			
-			if((reqLevel > combatLevel) && reqLevel > 0) {
+			if(!(((PlayerEntity) serverplayer).getItemCooldownManager().getCooldownProgress(stack.getItem(), 1.0F) > 0 && cdConfig)) {
+
+				data.setAction(action);
 				
-				playerentity.sendStatusMessage(new TranslationTextComponent("weaponthrow.pmmo.requirementThrowing", reqLevel), true);
-				return;
-			}
-			
-		}
-		
-
-		WeaponThrowEvent.TestThrow testEvent = new WeaponThrowEvent.TestThrow(stack, playerentity);
-		boolean isCancelled = MinecraftForge.EVENT_BUS.post(testEvent);
-		
-		Multimap<Attribute, AttributeModifier> multimap = stack.getAttributeModifiers(EquipmentSlotType.MAINHAND);
-		boolean haveAttributes = multimap.containsKey(Attributes.field_233823_f_) || multimap.containsKey(Attributes.field_233825_h_);
-		
-		if((isThrowable || haveAttributes) && !isCancelled && !stack.isEmpty()) {
-			
-			boolean cdConfig = WeaponThrowConfig.COMMON.notUseWhenCooldown.get();
-			if(!(playerentity.getCooldownTracker().getCooldown(stack.getItem(), 1.0F) > 0 && cdConfig)) {
-
-				IThrowPower provider = playerentity.getCapability(ThrowProvider.THROW_POWER).orElse(ThrowProvider.THROW_POWER.getDefaultInstance());
-	
-				if(action == 1 && provider.getChargeTime() <= 0 ) {
-					provider.setChargeTime(EventsHandler.getMaximumCharge(playerentity));
-	
+				if(action.equals(CPacketThrow.State.START) && data.getChargeTime() <= 0) {
+					data.startCharging(stack);
 				}
-					
-				if(action == 0 && provider.getChargeTime() >= 0) {
-					
+				
+				if(action.equals(CPacketThrow.State.FINISH) && data.getChargeTime() >= 0 ) {
+
 					float baseThrow = 0;
 					float baseExhaustion = 0.05F;
-					
-					float modThrow = 1.F - (provider.getChargeTime()/(float)EventsHandler.getMaximumCharge(playerentity));
-					
-					provider.setChargeTime(ITEMPHYSICSBLOCKING);
-					
-					double defaultVelocity = WeaponThrowConfig.COMMON.baseVelocityDefault.get();
 
-					if (WeaponThrowConfig.COMMON.shouldThrowItemsToo.get()){
-						baseThrow = (float) defaultVelocity;
+					float modThrow = 1.0F;
+					
+					if(Math.signum(PlayerThrowData.getMaximumCharge((PlayerEntity) serverplayer)) != 0.0F) {
+						modThrow = 1.F - (data.getChargeTime()/(float)PlayerThrowData.getMaximumCharge((PlayerEntity) serverplayer));
 					}
-					else if (!WeaponThrowConfig.COMMON.whiteList.get().isEmpty()) {
-						for(Item item: WeaponThrowConfig.COMMON.whiteList.get()) {
-							if(stack.getItem().equals(item)){
-								baseThrow = (float) defaultVelocity;
-							}
-						}
-						
+					
+					data.resetCharging();
+					
+					double defaultVelocity = ConfigRegistry.COMMON.get().defaults.velocityDefault;
+					
+					if (ConfigRegistry.COMMON.get().experimental.shouldThrowItemsToo){
+						baseThrow = (float) defaultVelocity;
 					}
 					
 					if(haveAttributes) {
-						baseThrow = 20/playerentity.getCooldownPeriod();
-						baseExhaustion = playerentity.getCooldownPeriod()/20;
+						baseThrow = 20/ ((PlayerEntity) serverplayer).getAttackCooldownProgressPerTick();
+						baseExhaustion = ((PlayerEntity) serverplayer).getAttackCooldownProgressPerTick()/20;
 					}
-	
+					
 					if(baseThrow>0) {
 		                
 						boolean shouldDestroy = modThrow > 0.99;
-						float baseDamage = 0.01F;
+						double baseDamage = ConfigRegistry.COMMON.get().defaults.baseDamageDefault;
 						
 						double toolMultiplier = 0.0D;
 						
-						double defaultDamage = WeaponThrowConfig.COMMON.baseDamageDefault.get();
-						
-						if (!WeaponThrowConfig.COMMON.whiteList.get().isEmpty()) {
-							for(Item item: WeaponThrowConfig.COMMON.whiteList.get()) {
-								if(stack.getItem().equals(item)){
-									baseDamage = (float) defaultDamage;
-									baseExhaustion = 1/baseThrow;
-								}
-							}
-						}
+
 						
 						if(haveAttributes) {
-							baseDamage = (float) playerentity.func_233637_b_(Attributes.field_233823_f_);
+							baseDamage = (float) ((PlayerEntity) serverplayer).getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
 							
-							Set<ToolType> types = stack.getToolTypes();
-							
-							if(types.contains(ToolType.AXE)) {
-								toolMultiplier += WeaponThrowConfig.COMMON.axeMultiplier.get();
+							int types = 0;
+							if(stack.getItem() instanceof AxeItem) {
+								toolMultiplier += ConfigRegistry.COMMON.get().multipliers.tools.axeMultiplier;
+								types++;
 							}
-							if(types.contains(ToolType.HOE)) {
-								toolMultiplier += WeaponThrowConfig.COMMON.hoeMultiplier.get();
+							if(stack.getItem() instanceof HoeItem) {
+								toolMultiplier += ConfigRegistry.COMMON.get().multipliers.tools.hoeMultiplier;
+								types++;
 							}
-							if(types.contains(ToolType.PICKAXE)) {
-								toolMultiplier += WeaponThrowConfig.COMMON.pickaxeMultiplier.get();
+							if(stack.getItem() instanceof PickaxeItem) {
+								toolMultiplier += ConfigRegistry.COMMON.get().multipliers.tools.pickaxeMultiplier;
+								types++;
 							}
-							if(types.contains(ToolType.SHOVEL)) {
-								toolMultiplier += WeaponThrowConfig.COMMON.shovelMultiplier.get();
+							if(stack.getItem() instanceof ShovelItem) {
+								toolMultiplier += ConfigRegistry.COMMON.get().multipliers.tools.shovelMultiplier;
+								types++;
 							}
-							if(types.isEmpty()) {
-								toolMultiplier = WeaponThrowConfig.COMMON.swordMultiplier.get();
+							if(stack.getItem() instanceof SwordItem) {
+								toolMultiplier = ConfigRegistry.COMMON.get().multipliers.tools.swordMultiplier;
+								types++;
 							}
 
-							toolMultiplier/=(types.size()>0? types.size() : 1);
+							toolMultiplier/=(types>0? types : 1);
 							
 						}
 						
@@ -198,246 +133,209 @@ public class EventsHandler {
 							toolMultiplier = 1.0F;
 						}
 						
-						double bDamageMul = WeaponThrowConfig.COMMON.baseDamageMultiplier.get();
-						double sDamageMul = WeaponThrowConfig.COMMON.stackDamageMultiplier.get();	
-						double mDamageMul = WeaponThrowConfig.COMMON.modifiedDamageMultiplier.get();	
-						double totalDamage = (baseDamage)*(1*bDamageMul + modThrow*mDamageMul) + (stack.getCount()*sDamageMul);
+						int size = ((PlayerEntity) serverplayer).isSneaking() ? stack.getCount() : 1;
+						
+						double bDamageMul = ConfigRegistry.COMMON.get().multipliers.damages.baseDamageMultiplier;
+						double sDamageMul = ConfigRegistry.COMMON.get().multipliers.damages.stackDamageMultiplier;	
+						double mDamageMul = ConfigRegistry.COMMON.get().multipliers.damages.modifiedDamageMultiplier;	
+						double totalDamage = (baseDamage)*(1*bDamageMul + modThrow*mDamageMul) + (size*sDamageMul);
 						totalDamage*=toolMultiplier;
 						
-						double bVelocityMul = WeaponThrowConfig.COMMON.baseVelocityMultiplier.get();
-						double sVelocityMul = WeaponThrowConfig.COMMON.stackVelocityMultiplier.get();	
-						double mVelocityMul = WeaponThrowConfig.COMMON.modifiedVelocityMultiplier.get();	
-						double totalVelocity = (baseThrow)*(1*bVelocityMul + modThrow*mVelocityMul) - (stack.getCount()*sVelocityMul);
+						double bVelocityMul = ConfigRegistry.COMMON.get().multipliers.velocities.baseVelocityMultiplier;
+						double sVelocityMul = ConfigRegistry.COMMON.get().multipliers.velocities.stackVelocityMultiplier;	
+						double mVelocityMul = ConfigRegistry.COMMON.get().multipliers.velocities.modifiedVelocityMultiplier;	
+						double totalVelocity = (baseThrow)*(1*bVelocityMul + modThrow*mVelocityMul) - (size*sVelocityMul);
 						totalVelocity*=toolMultiplier;
 						
-			            double bExhaustionMul = WeaponThrowConfig.COMMON.baseExhaustionMultiplier.get();
-			            double sExhaustionMul = WeaponThrowConfig.COMMON.stackExhaustionMultiplier.get();
-			            double mExhaustionMul = WeaponThrowConfig.COMMON.modifiedExhaustionMultiplier.get();
-			            double totalExhaustion = (baseExhaustion)*(1*bExhaustionMul + modThrow*mExhaustionMul) + (stack.getCount()*sExhaustionMul);
+			            double bExhaustionMul = ConfigRegistry.COMMON.get().multipliers.exhaustions.baseExhaustionMultiplier;
+			            double sExhaustionMul = ConfigRegistry.COMMON.get().multipliers.exhaustions.stackExhaustionMultiplier;
+			            double mExhaustionMul = ConfigRegistry.COMMON.get().multipliers.exhaustions.modifiedExhaustionMultiplier;
+			            double totalExhaustion = (baseExhaustion)*(1*bExhaustionMul + modThrow*mExhaustionMul) + (size*sExhaustionMul);
 			            totalExhaustion*=toolMultiplier;
-
-						WeaponThrowEvent.OnThrow onThrowEvent = new WeaponThrowEvent.OnThrow(stack, playerentity, totalDamage, totalVelocity, totalExhaustion);
-						MinecraftForge.EVENT_BUS.post(onThrowEvent);
-						
-						
-						WeaponThrowEntity throwedEntity = new WeaponThrowEntity(worldIn, playerentity, shouldDestroy, (float) onThrowEvent.totalDamage, stack);
-						throwedEntity.func_234612_a_(playerentity, playerentity.rotationPitch, playerentity.rotationYaw, 0.0F, (float) onThrowEvent.totalVelocity, 1.0F);
-						playerentity.addExhaustion((float) onThrowEvent.totalExhaustion);
+			            
+						WeaponThrowEntity throwedEntity = new WeaponThrowEntity(world, (PlayerEntity) serverplayer, shouldDestroy, (float) totalDamage, stack.split(size));
+						throwedEntity.setVelocity((PlayerEntity) serverplayer, ((PlayerEntity) serverplayer).getPitch(), ((PlayerEntity) serverplayer).getYaw(), 0.0F, (float) totalVelocity, 1.0F);
+						((PlayerEntity) serverplayer).addExhaustion((float) totalExhaustion);
 
 			            
-			            worldIn.addEntity(throwedEntity);
+			            world.spawnEntity(throwedEntity);
 			            
 			            SoundEvent soundevent = SoundEvents.ENTITY_EGG_THROW;
 			            throwedEntity.playSound(soundevent, 1.0F, 0.5F);
-			            
-			            if (playerentity.abilities.isCreativeMode) {
-			            	throwedEntity.pickupStatus = AbstractArrowEntity.PickupStatus.CREATIVE_ONLY;
-			            	if(!WeaponThrowConfig.COMMON.creativeSpamming.get()) {
-			            		playerentity.inventory.deleteStack(stack);
-			            	}
-			            }else {
-			            	playerentity.inventory.deleteStack(stack);
-			            }
-			            
-			            
+
 					}
 				}
+				
+				((IPlayerEntityMixin) (PlayerEntity) serverplayer).setThrowPower(data);
+			
 			}
+
+		}
+		
+		/*if(stack.isEmpty() || !data.getChargingStack().equals(stack)) {
+			data.resetCharging();
+		}*/
+
+	}
+	
+
+	
+	public static void registerEvents(){
+		OnStartPlayerTick.EVENT.register((player)->{
+			if(!player.world.isClient()) {
+				PlayerThrowData cap = ((IPlayerEntityMixin)player).getThrowPower();
+
+				boolean attacked = player.getAttackCooldownProgress(0.0F) < 1.0F;
+				boolean cdConfig = ConfigRegistry.COMMON.get().general.notUseWhenCooldown;
+				
+				boolean changedItem = !ItemStack.areEqual(cap.getChargingStack(), player.getMainHandStack());
+				
+				if (attacked && cdConfig  || changedItem) {
+					cap.resetCharging();
+				}
+				
+				if (cap.getChargeTime() > 0) {
+					cap.setChargeTime(cap.getChargeTime() - 1);
+				}
+
+
+				if(cap.getAction().equals(CPacketThrow.State.START) || cap.getAction().equals(CPacketThrow.State.FINISH)) {
+
+					PacketHandler.sendToAll(player, new SPacketThrow(player.getUuid(), PlayerThrowData.getMaximumCharge(player), cap.getAction().equals(CPacketThrow.State.START)));
+					
+					if(cap.getAction().equals(CPacketThrow.State.FINISH)) {
+						cap.setAction(State.NONE);
+					}
+				}
+			}else {
+				PlayerThrowData cap = ((IPlayerEntityMixin)player).getThrowPower();
+				
+				if(cap.getChargeTime() > 0) {
+					 cap.setChargeTime(cap.getChargeTime()-1);
+				 }
+				
+				//clientSideCharge = cap.getAction().equals(State.DURING)? clientSideCharge+1 : 0;
+			}
+		});
+	
+	}
+	
+	public static void onSeverUpdate(UUID playerUUID, int maxChargeTime, boolean isCharging) {
+		assert MinecraftClient.getInstance().world != null;
+		PlayerEntity playerentity = MinecraftClient.getInstance().world.getPlayerByUuid(playerUUID);
+		if(playerentity != null) {
+			
+			PlayerThrowData cap = ((IPlayerEntityMixin)playerentity).getThrowPower();
+			cap.MAX_CHARGE = maxChargeTime;
+			
+			if(isCharging) {
+				cap.setChargeTime(maxChargeTime);
+			}
+			
+			cap.setAction(isCharging ? State.DURING : State.NONE);
+
 		}
 	}
-	 @SubscribeEvent
-	 public void onItemCrash(ItemTossEvent event)
-	 {
-			
-	 }
 	
-	 @SubscribeEvent
-	 public void onPlayerToss(ItemTossEvent event)
-	 {
-			event.getPlayer().getCapability(ThrowProvider.THROW_POWER).ifPresent(cap -> {
-				if (cap.getChargeTime() <= ITEMPHYSICSBLOCKING) {
-					cap.setChargeTime(-1);
-					if (ModList.get().isLoaded("itemphysic") && WeaponThrowConfig.COMMON.enableItemPhysicsFix.get()) {
-						event.setCanceled(true);
-					}
+	public static void registerClientEvents() {
+		OnHeldItemRender.EVENT.register((renderer, player, tickDelta, pitch, hand, swingProgress, item, equipProgress, matrices, vertexConsumers, light)->{
+			
+			PlayerThrowData cap = ((IPlayerEntityMixin)player).getThrowPower();
+			
+			if(cap.getAction().equals(State.DURING)) {
 
+				//float progress = MathHelper.clamp((float)(EventsHandler.clientSideCharge+tickDelta)/cap.MAX_CHARGE, 0.F, 1.0F);
+				
+				float preProgress = 1.0F;
+				
+				/*if(Math.signum(cap.MAX_CHARGE) != 0.0F) {
+					preProgress = (float)(EventsHandler.clientSideCharge+tickDelta)/cap.MAX_CHARGE;
+				}*/
+				
+				if(Math.signum(cap.MAX_CHARGE) != 0.0F && cap.getChargeTime() > 0) {
+					float lerp = MathHelper.lerp(tickDelta, cap.getChargeTime()+1, cap.getChargeTime());
+					preProgress = 1.F-(float)(lerp)/cap.MAX_CHARGE;
 				}
-
-			});
-	 }
-	 
-	 @SubscribeEvent
-	 public void attachCapability(AttachCapabilitiesEvent<Entity> event)
-	 {
-		 if (!(event.getObject() instanceof PlayerEntity)) return;
-	
-		 event.addCapability(THROWPOWER, new ThrowProvider());
-	 }
-	 
-	 @SubscribeEvent
-	 public void onPlayerTick(PlayerTickEvent event)
-	 {
-		 
-		 if(event.phase.equals(TickEvent.Phase.START)) {
-			 
-			 if(!event.player.world.isRemote) {
-				 event.player.getCapability(ThrowProvider.THROW_POWER).ifPresent(cap -> {
-					
-					boolean attacked = event.player.getCooledAttackStrength(0.0F) < 1.0F ? true: false;
-					boolean cdConfig = WeaponThrowConfig.COMMON.notUseWhenCooldown.get();
-					
-					if(attacked && cdConfig) {
-						cap.setChargeTime(-1);
-					}
-						
-					 if(cap.getChargeTime() > 0) {
-						cap.setChargeTime(cap.getChargeTime()-1);
-					 }
-						
-					 
-					 if(cap.doesMaxChargeChanged()) {
-						 PacketHandler.sendToAll(new SPacketThrow(PlayerEntity.getUUID(event.player.getGameProfile()), (int) (cap.getChargeTime() >= 0? EventsHandler.getMaximumCharge(event.player): cap.getChargeTime())));
-					 }
-					 
-					 cap.tick();
-				 });
-			 }else {
-				 this.clientSideCharge++;
-			 }
-		 }
-	 }
-	 
-	 public static int getMaximumCharge(PlayerEntity player) {
-		return MathHelper.floor(player.getCooldownPeriod()*WeaponThrowConfig.COMMON.castTimeInTicks.get());
-	 }
-
-	 @OnlyIn(Dist.CLIENT)
-	 public static void onSeverUpdate(UUID playerUUID, int chargeTime) {
-			PlayerEntity playerentity = Minecraft.getInstance().world.getPlayerByUuid(playerUUID);
-			
-			if(playerentity != null) {
-				playerentity.getCapability(ThrowProvider.THROW_POWER).ifPresent(cap -> {
-					cap.setChargeTime(chargeTime);
-							
-				});
+				
+				float progress = MathHelper.clamp(preProgress, 0.F, 1.0F);
+				
+				matrices.translate(0.0D, 0.0F, (double)((float)progress * 0.50F));
+				matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion((float)progress * 10.0F));
+				matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion((float)progress * 40.0F));
+				
 			}
-	 }
-	
-	 @OnlyIn(Dist.CLIENT)
-	 @SubscribeEvent
-	 public void renderView(RenderGameOverlayEvent.Post event)
-	 {
-		 
-		 int maxChargeTime = Minecraft.getInstance().player.getCapability(ThrowProvider.THROW_POWER).orElse(ThrowProvider.THROW_POWER.getDefaultInstance()).getChargeTime();
-		 boolean isCharging = maxChargeTime >= 0 ? true : false;
-		 
-		 if(isCharging) {
-	         if (Minecraft.getInstance().playerController.getCurrentGameType() != GameType.SPECTATOR) {
-				 if(event.getType().equals(ElementType.CROSSHAIRS)) {
-					 
-					 
-					 RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-					 MatrixStack p_238456_1_ = event.getMatrixStack();
-					 
-					 float f = MathHelper.clamp(this.clientSideCharge / maxChargeTime, 0.0F, 1.0F);
+		});
 		
-					 int scaledWidth = Minecraft.getInstance().getMainWindow().getScaledWidth();
-				     int scaledHeight = Minecraft.getInstance().getMainWindow().getScaledHeight();
-				     
-				     IngameGui ingameGui = Minecraft.getInstance().ingameGUI;
-				     
-		             int j = scaledHeight / 2 + WeaponThrowConfig.COMMON.offsetY.get();
-		             int k = scaledWidth / 2 + WeaponThrowConfig.COMMON.offsetX.get();
-
-		             if (f >= 1.0F) {
-		            	ingameGui.func_238474_b_(p_238456_1_, k, j, 68, 94, 16, 16);
-	                 } else{
-		                int l = (int)(f * 17.0F);
-		                
-		                ingameGui.func_238474_b_(p_238456_1_, k, j, 36, 94, 16, 4);
-		                ingameGui.func_238474_b_(p_238456_1_, k, j, 52, 94, l, 4);
-		             }
-				 }
-	         }
-	         
-	     }else if(!isCharging){
-			 this.clientSideCharge = 0;
-		 }
-	 }
-	 @OnlyIn(Dist.CLIENT)
-	 @SubscribeEvent
-	 public void updateFov(FOVUpdateEvent event)
-	 {
-		 int maxChargeTime = Minecraft.getInstance().player.getCapability(ThrowProvider.THROW_POWER).orElse(ThrowProvider.THROW_POWER.getDefaultInstance()).getChargeTime();
-		 boolean isCharging = maxChargeTime >= 0 ? true : false;
-		 
-		 if(isCharging) {
+		OnStartPlayerRender.EVENT.register((renderer, player)->{
 			
-			 float f = event.getFov();
-	         int i = (int) (this.clientSideCharge);
-	         
-	         float f1 = (float)i / maxChargeTime;
-	         if (f1 > 1.0F) {
-	            f1 = 1.0F;
-	         } else {
-	            f1 = f1 * f1;
-	         }
-	         
-	         f *= 1.0F + f1 * 0.15F;
-	         
-	         event.setNewfov(f);
+			PlayerThrowData cap = ((IPlayerEntityMixin)player).getThrowPower();
+			if(cap.getAction().equals(State.DURING)) {
+					if(player instanceof AbstractClientPlayerEntity) {
+						Arm hand = ((AbstractClientPlayerEntity)player).getMainArm();
+						if(hand == Arm.RIGHT)
+							renderer.getModel().rightArmPose = BipedEntityModel.ArmPose.THROW_SPEAR;
+						else
+							renderer.getModel().leftArmPose = BipedEntityModel.ArmPose.THROW_SPEAR;
+					}
+			}
+		});
+		
+		OnApplySlow.EVENT.register((player)->{
+			PlayerThrowData cap = ((IPlayerEntityMixin)player).getThrowPower();
+			return cap.getAction().equals(State.DURING);
+		});
+		
+		OnFOVUpdate.EVENT.register((player, amount)->{
+			
+			PlayerThrowData cap = ((IPlayerEntityMixin)player).getThrowPower();
+			
+			int maxChargeTime = cap.MAX_CHARGE;
+			
+			int chargeTime = cap.getChargeTime();
 
-		 }
-	 }
-	 
-	 @OnlyIn(Dist.CLIENT)
-	 @SubscribeEvent
-	 public void renderPlayer(RenderPlayerEvent event)
-	 {
-			 event.getEntity().getCapability(ThrowProvider.THROW_POWER).ifPresent(cap -> {
-				 
-				 if(cap.getChargeTime() >= 0) {
-						if(event.getEntity() instanceof AbstractClientPlayerEntity) {
-							HandSide hand = ((AbstractClientPlayerEntity)event.getEntity()).getPrimaryHand();
-							if(hand == HandSide.RIGHT)
-								event.getRenderer().getEntityModel().rightArmPose = BipedModel.ArmPose.THROW_SPEAR;
-							else
-								event.getRenderer().getEntityModel().leftArmPose = BipedModel.ArmPose.THROW_SPEAR;
-						}
+			boolean isCharging = cap.getAction().equals(State.DURING);
+			float f = amount;
+			
+			 if(isCharging) {
+
+		         float f1 = 1.0F;
+
+		         if(Math.signum(maxChargeTime) != 0.0F && chargeTime > 0) {
+					 float lerp = MathHelper.lerp(MinecraftClient.getInstance().getTickDelta(), chargeTime+1, chargeTime);
+					 f1 = MathHelper.clamp(1.0F-(float)lerp / maxChargeTime, 0.F, 1.0F);
 				 }
-			 });
-	 }
-	 
-	 @OnlyIn(Dist.CLIENT)
-	 @SubscribeEvent
-	 public void inputUpdate(InputUpdateEvent event)
-	 {
-		 int maxChargeTime = Minecraft.getInstance().player.getCapability(ThrowProvider.THROW_POWER).orElse(ThrowProvider.THROW_POWER.getDefaultInstance()).getChargeTime();
-		 boolean isCharging = maxChargeTime >= 0 ? true : false;
-		 
-		 if(isCharging) {
-			 event.getMovementInput().moveStrafe *= 0.2F;
-			 event.getMovementInput().moveForward *= 0.2F;
-		 }
-		 
-	 }
+		         
+		         if (f1 > 1.0F) {
+		            f1 = 1.0F;
+		         } else {
+		            f1 = f1 * f1;
+		         }
+		         
+		         f *= 1.0F + f1 * 0.15F;
 	
-    @SubscribeEvent
-    public void onKeyInput(KeyInputEvent event)
-    {
-    	boolean pressed = KeyBindingHandler.KEYBINDING.isKeyDown();
-    	
-        if (pressed && event.getAction() != 0)
-        {
-        	PacketHandler.sendToServer(new CPacketThrow(this.wasPressed? 2: 1));
-        	this.wasPressed = true;
-        	
-        } else if(this.wasPressed && event.getAction() == 0 && !pressed){
-        	
-        	PacketHandler.sendToServer(new CPacketThrow(event.getAction()));
-        	this.wasPressed = false;
-        }
-        
-    }
+			 }
+			 
+			return f;
+		});
+		
+		ClientTickEvents.END_WORLD_TICK.register(client -> {
+			
+			boolean pressed = KeyBindingHandler.KEYBINDING.isPressed();
+
+			if (pressed) {
+				PacketHandler.sendToServer(new CPacketThrow(EventsHandler.wasPressed ? CPacketThrow.State.DURING: CPacketThrow.State.START));
+				EventsHandler.wasPressed = true;
+			}else if(EventsHandler.wasPressed){
+				PacketHandler.sendToServer(new CPacketThrow(CPacketThrow.State.FINISH));
+				EventsHandler.wasPressed = false;
+			}
+	        
+		});
+		
+	}
 	
+
 }
+
+
+

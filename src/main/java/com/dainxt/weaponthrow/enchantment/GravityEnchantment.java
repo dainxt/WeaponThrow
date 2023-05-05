@@ -1,23 +1,23 @@
 package com.dainxt.weaponthrow.enchantment;
 
-import com.dainxt.weaponthrow.config.WeaponThrowConfig;
+import com.dainxt.weaponthrow.handlers.ConfigRegistry;
 
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentType;
-import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.enchantment.EnchantmentTarget;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.ItemStack;
 
 public class GravityEnchantment extends Enchantment{
-	public GravityEnchantment(Enchantment.Rarity rarityIn, EquipmentSlotType... slots) {
-		  super(rarityIn, EnchantmentType.WEAPON, slots);
+	public GravityEnchantment(Enchantment.Rarity rarityIn, EquipmentSlot... slots) {
+		  super(rarityIn, EnchantmentTarget.WEAPON, slots);
 	}
 
-	public int getMinEnchantability(int enchantmentLevel) {
+	public int getMinPower(int enchantmentLevel) {
 	      return 25;
 	}
 
-	public int getMaxEnchantability(int enchantmentLevel) {
+	public int getMaxPower(int enchantmentLevel) {
 	      return 50;
 	}
 
@@ -25,19 +25,19 @@ public class GravityEnchantment extends Enchantment{
 	      return 1;
 	}
 	
-	public boolean isTreasureEnchantment() {
+	public boolean isTreasure() {
 		 return true;
 	}
 
-	public boolean isCurse() {
+	public boolean isCursed() {
 		 return true;
 	}
 	
 	@Override
-	public boolean canApply(ItemStack stack) {
-		   boolean enchantAll = WeaponThrowConfig.COMMON.enchantAll.get();
+	public boolean isAcceptableItem(ItemStack stack) {
+		   boolean enchantAll = ConfigRegistry.COMMON.getConfig().enchantments.enchantAllWeapons;
 		   boolean isAxe = stack.getItem() instanceof AxeItem;
-		   boolean canApply = super.canApply(stack);	   
-		   return isAxe || canApply || enchantAll ? WeaponThrowConfig.COMMON.gravityEnchant.get() : false;
+		   boolean canApply = super.isAcceptableItem(stack);	   
+		   return (isAxe || canApply || enchantAll) && ConfigRegistry.COMMON.getConfig().enchantments.enableGravity;
 	}
 }

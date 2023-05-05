@@ -1,17 +1,17 @@
 package com.dainxt.weaponthrow.enchantment;
 
-import com.dainxt.weaponthrow.config.WeaponThrowConfig;
+import com.dainxt.weaponthrow.handlers.ConfigRegistry;
 
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentType;
-import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.enchantment.EnchantmentTarget;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.ItemStack;
 
 public class GroundedEdgeEnchantment extends Enchantment {
 
-		   public GroundedEdgeEnchantment(Enchantment.Rarity rarityIn, EquipmentSlotType... slots) {
-		      super(rarityIn, EnchantmentType.WEAPON, slots);
+		   public GroundedEdgeEnchantment(Enchantment.Rarity rarityIn, EquipmentSlot... slots) {
+		      super(rarityIn, EnchantmentTarget.WEAPON, slots);
 		   }
 
 		   /**
@@ -33,10 +33,10 @@ public class GroundedEdgeEnchantment extends Enchantment {
 		   }
 		   
 		   @Override
-		public boolean canApply(ItemStack stack) {
-			   boolean enchantAll = WeaponThrowConfig.COMMON.enchantAll.get();
+		public boolean isAcceptableItem(ItemStack stack) {
+			   boolean enchantAll = ConfigRegistry.COMMON.getConfig().enchantments.enchantAllWeapons;
 			   boolean isAxe = stack.getItem() instanceof AxeItem;
-			   boolean canApply = super.canApply(stack);
-			   return isAxe || canApply || enchantAll ? WeaponThrowConfig.COMMON.groundedEdgeEnchant.get() : false;
+			   boolean canApply = super.isAcceptableItem(stack);
+			   return (isAxe || canApply || enchantAll) && ConfigRegistry.COMMON.getConfig().enchantments.enableGroundedEdge;
 		}
 }

@@ -1,0 +1,92 @@
+{
+	"key.weaponthrow": "Throw",
+	"enchantment.weaponthrow.throw": "Throw",
+	"enchantment.weaponthrow.throw.desc": "Increase throwing damage",
+	"enchantment.weaponthrow.groundededge": "Grounded Edge",
+	"enchantment.weaponthrow.groundededge.desc": "Apply weakness in area",
+	"enchantment.weaponthrow.conccusion": "Concussion",
+	"enchantment.weaponthrow.conccusion.desc": "Apply nausea and slowness",
+	"enchantment.weaponthrow.gravity": "Curse of Gravity",
+	"enchantment.weaponthrow.gravity.desc": "Your weapon defies gravity, at a cost",
+	"enchantment.weaponthrow.return": "Return",
+	"enchantment.weaponthrow.return.desc": "Your weapons come back",
+	"weaponthrow.pmmo.requirementThrowing": "You need combat level %d to throw that weapon",
+	"weaponthrow.pmmo.requirementLoyalty": "You need combat level %d to use loyalty",
+	
+	//Tetra Enchantment Integration
+	"tetra.improvement.enchantment/weaponthrow_throw.name": "Throw",
+	"tetra.improvement.enchantment/weaponthrow_throw.description": "Increase throwing damage",
+	"tetra.improvement.destabilized/weaponthrow_throw.name": "Destabilized: Throw",
+	"tetra.improvement.destabilized/weaponthrow_throw.description": "Reduces the effect of the Throw enchantment",
+	"tetra.improvement.enchantment/weaponthrow_groundededge.name": "Grounded Edge",
+	"tetra.improvement.enchantment/weaponthrow_groundededge.description": "Apply weakness in area",
+	"tetra.improvement.destabilized/weaponthrow_groundededge.name": "Destabilized: Grounded Edge",
+	"tetra.improvement.destabilized/weaponthrow_groundededge.description": "Reduces the effect of the Grounded Edge enchantment",
+	"tetra.improvement.enchantment/weaponthrow_conccusion.name": "Concussion",
+	"tetra.improvement.enchantment/weaponthrow_conccusion.description": "Apply nausea and slowness",
+	"tetra.improvement.destabilized/weaponthrow_conccusion.name": "Destabilized: Concussion",
+	"tetra.improvement.destabilized/weaponthrow_conccusion.description": "Reduces the effect of the Concussion enchantment",
+	"tetra.improvement.enchantment/weaponthrow_gravity.name": "Curse of Gravity",
+	"tetra.improvement.enchantment/weaponthrow_gravity.description": "Your weapon defies gravity, at a cost",
+	"tetra.improvement.enchantment/weaponthrow_return.name": "Return",
+	"tetra.improvement.enchantment/weaponthrow_return.description": "Your weapons come back",
+	"tetra.improvement.destabilized/weaponthrow_return.name": "Destabilized: Return",
+	"tetra.improvement.destabilized/weaponthrow_return.description": "Reduces the effect of the Return enchantment",
+	
+	//ModMenu Gui Integration
+	
+	"text.autoconfig.weaponthrow.title": "Weapon Throw Config",
+	
+	"text.autoconfig.weaponthrow.category.general": "General",
+	"text.autoconfig.weaponthrow.option.general.creativeSpamming": "Creative Spamming",
+	"text.autoconfig.weaponthrow.option.general.notUseWhenCooldown": "Not use when cooldown",
+	
+	"text.autoconfig.weaponthrow.category.defaults": "Defaults",
+	"text.autoconfig.weaponthrow.option.defaults.baseDamageDefault": "Default base damage for non weapons",
+	"text.autoconfig.weaponthrow.option.defaults.velocityDefault": "Default base velocity for non weapons",
+	
+	"text.autoconfig.weaponthrow.category.enchantments": "Enchantments",
+	"text.autoconfig.weaponthrow.option.enchantments.enchantAllWeapons": "All weapons can be enchanted",
+	"text.autoconfig.weaponthrow.option.enchantments.enableThrow": "Enable Throw Enchantment",
+	"text.autoconfig.weaponthrow.option.enchantments.enableConccusion": "Enable Concussion Enchantment",
+	"text.autoconfig.weaponthrow.option.enchantments.enableGroundedEdge": "Enable Grounded Edge Enchantment",
+	"text.autoconfig.weaponthrow.option.enchantments.enableGravity": "Enable Gravity Enchantment",
+	"text.autoconfig.weaponthrow.option.enchantments.enableReturn": "Enable Return Enchantment",
+	
+	"text.autoconfig.weaponthrow.category.experimental": "Experimental",
+	"text.autoconfig.weaponthrow.option.experimental.shouldThrowItemsToo": "Can throw any Items",
+	
+	"text.autoconfig.weaponthrow.category.interactions": "Interactions",
+	"text.autoconfig.weaponthrow.option.interactions.canBreakBlocks": "Can break blocks",
+	
+	"text.autoconfig.weaponthrow.category.multipliers": "Multipliers",
+	
+	"text.autoconfig.weaponthrow.option.multipliers.tools": "Tools Multipliers",
+	"text.autoconfig.weaponthrow.option.multipliers.tools.pickaxeMultiplier": "Pickaxe Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.tools.axeMultiplier": "Axe Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.tools.swordMultiplier": "Sword Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.tools.hoeMultiplier": "Hoe Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.tools.shovelMultiplier": "Shovel Multiplier",
+	
+	"text.autoconfig.weaponthrow.option.multipliers.damages": "Damage Multipliers",
+	"text.autoconfig.weaponthrow.option.multipliers.damages.baseDamageMultiplier": "Base Damage Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.damages.stackDamageMultiplier": "Stack Damage Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.damages.modifiedDamageMultiplier": "Modified Damage Multiplier",
+	
+	"text.autoconfig.weaponthrow.option.multipliers.velocities": "Velocity Multipliers",
+	"text.autoconfig.weaponthrow.option.multipliers.velocities.baseVelocityMultiplier": "Base Velocity Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.velocities.stackVelocityMultiplier": "Stack Velocity Multiplierr",
+	"text.autoconfig.weaponthrow.option.multipliers.velocities.modifiedVelocityMultiplier": "Modified Velocity Multiplier",
+	
+	"text.autoconfig.weaponthrow.option.multipliers.exhaustions": "Exhaustion Multipliers",
+	"text.autoconfig.weaponthrow.option.multipliers.exhaustions.baseExhaustionMultiplier": "Base Exhaustion Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.exhaustions.stackExhaustionMultiplier": "Stack Exhaustion Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.exhaustions.modifiedExhaustionMultiplier": "Modified Exhaustion Multiplier",
+	
+	
+	"text.autoconfig.weaponthrow.category.times": "Times",
+	"text.autoconfig.weaponthrow.option.times.despawnTime": "Despawn Time",
+	"text.autoconfig.weaponthrow.option.times.castTimeMuliplier": "Cast Time Multiplier",
+	"text.autoconfig.weaponthrow.option.times.ticksUntilWeaponLoseOwner": "Ticks until weapon lose owner"
+	
+}

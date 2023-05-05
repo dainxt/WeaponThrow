@@ -1,0 +1,12 @@
+{
+	"weaponthrow.categories.throw": "武器投掷",
+	"weaponthrow.throw": "投掷",
+	"enchantment.weaponthrow.throw": "投掷",
+	"enchantment.weaponthrow.throw.desc": "增加武器投掷伤害",
+	"enchantment.weaponthrow.groundededge": "撼地",
+	"enchantment.weaponthrow.groundededge.desc": "给予范围内的生物虚弱效果",
+	"enchantment.weaponthrow.conccusion": "震荡",
+	"enchantment.weaponthrow.conccusion.desc": "给予反胃和缓慢效果",
+	"enchantment.weaponthrow.gravity": "反重力",
+	"enchantment.weaponthrow.gravity.desc": "你投出去的武器无视重力效果"
+}
