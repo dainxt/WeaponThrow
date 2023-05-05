@@ -41,29 +41,25 @@ import net.minecraft.util.math.Vec3f;
 public class EventsHandler{
 	
 	public static boolean wasPressed = false;
-	
-	//public static int clientSideCharge = 0;
-	
+
 	public static void onThrowItem(ServerPlayerEntity serverplayer, CPacketThrow.State action){
-		
-		
-		
-		PlayerEntity player = (PlayerEntity) serverplayer;
+
+
 		ServerWorld world = serverplayer.getWorld();
-		ItemStack stack = player.getMainHandStack();
+		ItemStack stack = serverplayer.getMainHandStack();
 		
 		boolean isThrowable = ConfigRegistry.COMMON.get().experimental.shouldThrowItemsToo;
 		
 		Multimap<EntityAttribute, EntityAttributeModifier> multimap = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
 		boolean haveAttributes = multimap.containsKey(EntityAttributes.GENERIC_ATTACK_DAMAGE) || multimap.containsKey(EntityAttributes.GENERIC_ATTACK_SPEED);
 		
-		PlayerThrowData data = ((IPlayerEntityMixin)player).getThrowPower();
+		PlayerThrowData data = ((IPlayerEntityMixin) serverplayer).getThrowPower();
 		
 		if ((isThrowable || haveAttributes) && !stack.isEmpty()) {
 			
 			boolean cdConfig = ConfigRegistry.COMMON.get().general.notUseWhenCooldown;
 			
-			if(!(player.getItemCooldownManager().getCooldownProgress(stack.getItem(), 1.0F) > 0 && cdConfig)) {
+			if(!(serverplayer.getItemCooldownManager().getCooldownProgress(stack.getItem(), 1.0F) > 0 && cdConfig)) {
 
 				data.setAction(action);
 				
@@ -75,13 +71,10 @@ public class EventsHandler{
 
 					float baseThrow = 0;
 					float baseExhaustion = 0.05F;
-					
-					//float modThrow = 1.F - (data.getChargeTime()/(float)PlayerThrowData.getMaximumCharge(player));
-					
 					float modThrow = 1.0F;
 					
-					if(Math.signum(PlayerThrowData.getMaximumCharge(player)) != 0.0F) {
-						modThrow = 1.F - (data.getChargeTime()/(float)PlayerThrowData.getMaximumCharge(player));
+					if(Math.signum(PlayerThrowData.getMaximumCharge(serverplayer)) != 0.0F) {
+						modThrow = 1.F - (data.getChargeTime()/(float)PlayerThrowData.getMaximumCharge(serverplayer));
 					}
 					
 					data.resetCharging();
@@ -93,21 +86,18 @@ public class EventsHandler{
 					}
 					
 					if(haveAttributes) {
-						baseThrow = 20/player.getAttackCooldownProgressPerTick();
-						baseExhaustion = player.getAttackCooldownProgressPerTick()/20;
+						baseThrow = 20/ serverplayer.getAttackCooldownProgressPerTick();
+						baseExhaustion = serverplayer.getAttackCooldownProgressPerTick()/20;
 					}
 					
 					if(baseThrow>0) {
 		                
 						boolean shouldDestroy = modThrow > 0.99;
 						double baseDamage = ConfigRegistry.COMMON.get().defaults.baseDamageDefault;
-						
 						double toolMultiplier = 0.0D;
-						
 
-						
 						if(haveAttributes) {
-							baseDamage = (float) player.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
+							baseDamage = (float) serverplayer.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
 							
 							int types = 0;
 							if(stack.getItem() instanceof AxeItem) {
@@ -139,7 +129,7 @@ public class EventsHandler{
 							toolMultiplier = 1.0F;
 						}
 						
-						int size = player.isSneaking() ? stack.getCount() : 1;
+						int size = serverplayer.isSneaking() ? stack.getCount() : 1;
 						
 						double bDamageMul = ConfigRegistry.COMMON.get().multipliers.damages.baseDamageMultiplier;
 						double sDamageMul = ConfigRegistry.COMMON.get().multipliers.damages.stackDamageMultiplier;	
@@ -159,39 +149,27 @@ public class EventsHandler{
 			            double totalExhaustion = (baseExhaustion)*(1*bExhaustionMul + modThrow*mExhaustionMul) + (size*sExhaustionMul);
 			            totalExhaustion*=toolMultiplier;
 			            
-						WeaponThrowEntity throwedEntity = new WeaponThrowEntity(world, player, shouldDestroy, (float) totalDamage, stack.split(size));
-						throwedEntity.setVelocity(player, player.getPitch(), player.getYaw(), 0.0F, (float) totalVelocity, 1.0F);
-						player.addExhaustion((float) totalExhaustion);
-
+						WeaponThrowEntity throwedEntity = new WeaponThrowEntity(world, serverplayer, shouldDestroy, (float) totalDamage, stack.split(size));
+						throwedEntity.setVelocity(serverplayer, serverplayer.getPitch(), serverplayer.getYaw(), 0.0F, (float) totalVelocity, 1.0F);
+						serverplayer.addExhaustion((float) totalExhaustion);
 			            
 			            world.spawnEntity(throwedEntity);
 			            
 			            SoundEvent soundevent = SoundEvents.ENTITY_EGG_THROW;
 			            throwedEntity.playSound(soundevent, 1.0F, 0.5F);
-
 					}
 				}
-				
-				((IPlayerEntityMixin)player).setThrowPower(data);
-			
+				((IPlayerEntityMixin) serverplayer).setThrowPower(data);
 			}
-
 		}
-		
-		/*if(stack.isEmpty() || !data.getChargingStack().equals(stack)) {
-			data.resetCharging();
-		}*/
-
 	}
-	
 
-	
 	public static void registerEvents(){
 		OnStartPlayerTick.EVENT.register((player)->{
 			if(!player.world.isClient()) {
 				PlayerThrowData cap = ((IPlayerEntityMixin)player).getThrowPower();
 
-				boolean attacked = player.getAttackCooldownProgress(0.0F) < 1.0F ? true : false;
+				boolean attacked = player.getAttackCooldownProgress(0.0F) < 1.0F;
 				boolean cdConfig = ConfigRegistry.COMMON.get().general.notUseWhenCooldown;
 				
 				boolean changedItem = !ItemStack.areEqual(cap.getChargingStack(), player.getMainHandStack());
@@ -203,7 +181,6 @@ public class EventsHandler{
 				if (cap.getChargeTime() > 0) {
 					cap.setChargeTime(cap.getChargeTime() - 1);
 				}
-
 
 				if(cap.getAction().equals(CPacketThrow.State.START) || cap.getAction().equals(CPacketThrow.State.FINISH)) {
 
@@ -219,14 +196,13 @@ public class EventsHandler{
 				if(cap.getChargeTime() > 0) {
 					 cap.setChargeTime(cap.getChargeTime()-1);
 				 }
-				
-				//clientSideCharge = cap.getAction().equals(State.DURING)? clientSideCharge+1 : 0;
 			}
 		});
 	
 	}
 	
 	public static void onSeverUpdate(UUID playerUUID, int maxChargeTime, boolean isCharging) {
+		assert MinecraftClient.getInstance().world != null;
 		PlayerEntity playerentity = MinecraftClient.getInstance().world.getPlayerByUuid(playerUUID);
 		if(playerentity != null) {
 			
@@ -249,24 +225,18 @@ public class EventsHandler{
 			
 			if(cap.getAction().equals(State.DURING)) {
 
-				//float progress = MathHelper.clamp((float)(EventsHandler.clientSideCharge+tickDelta)/cap.MAX_CHARGE, 0.F, 1.0F);
-				
 				float preProgress = 1.0F;
-				
-				/*if(Math.signum(cap.MAX_CHARGE) != 0.0F) {
-					preProgress = (float)(EventsHandler.clientSideCharge+tickDelta)/cap.MAX_CHARGE;
-				}*/
-				
+
 				if(Math.signum(cap.MAX_CHARGE) != 0.0F && cap.getChargeTime() > 0) {
 					float lerp = MathHelper.lerp(tickDelta, cap.getChargeTime()+1, cap.getChargeTime());
-					preProgress = 1.F-(float)(lerp)/cap.MAX_CHARGE;
+					preProgress = 1.F- lerp /cap.MAX_CHARGE;
 				}
 				
 				float progress = MathHelper.clamp(preProgress, 0.F, 1.0F);
-				
-				matrices.translate(0.0D, 0.0F, (double)((float)progress * 0.50F));
-				matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion((float)progress * 10.0F));
-				matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion((float)progress * 40.0F));
+
+				matrices.translate(0.0D, 0.0F, progress * 0.50F);
+				matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(progress * 10.0F));
+				matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(progress * 40.0F));
 				
 			}
 		});
@@ -276,7 +246,7 @@ public class EventsHandler{
 			PlayerThrowData cap = ((IPlayerEntityMixin)player).getThrowPower();
 			if(cap.getAction().equals(State.DURING)) {
 					if(player instanceof AbstractClientPlayerEntity) {
-						Arm hand = ((AbstractClientPlayerEntity)player).getMainArm();
+						Arm hand = player.getMainArm();
 						if(hand == Arm.RIGHT)
 							renderer.getModel().rightArmPose = BipedEntityModel.ArmPose.THROW_SPEAR;
 						else
@@ -302,23 +272,13 @@ public class EventsHandler{
 			float f = amount;
 			
 			 if(isCharging) {
-				
-				 
-		         //int i = (int) (EventsHandler.clientSideCharge);
-		         
-		         //float f1 = (float)i / maxChargeTime;
-		         
+
 		         float f1 = 1.0F;
-		         
-		         /*if(Math.signum(maxChargeTime) != 0.0F) {
-					 f1 =(float)i / maxChargeTime;
-				 }*/
 		         
 		         if(Math.signum(maxChargeTime) != 0.0F && chargeTime > 0) {
 		        	 float lerp = MathHelper.lerp(MinecraftClient.getInstance().getTickDelta(), chargeTime+1, chargeTime);
-					 f1 = MathHelper.clamp(1.0F-(float)lerp / maxChargeTime, 0.F, 1.0F);
+					 f1 = MathHelper.clamp(1.0F- lerp / maxChargeTime, 0.F, 1.0F);
 				 }
-		         
 		         if (f1 > 1.0F) {
 		            f1 = 1.0F;
 		         } else {
@@ -326,9 +286,7 @@ public class EventsHandler{
 		         }
 		         
 		         f *= 1.0F + f1 * 0.15F;
-	
 			 }
-			 
 			return f;
 		});
 		
@@ -343,12 +301,8 @@ public class EventsHandler{
 				PacketHandler.sendToServer(new CPacketThrow(CPacketThrow.State.FINISH));
 				EventsHandler.wasPressed = false;
 			}
-	        
 		});
-		
 	}
-	
-
 }
 
 

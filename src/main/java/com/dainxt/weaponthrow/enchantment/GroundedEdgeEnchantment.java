@@ -14,9 +14,7 @@ public class GroundedEdgeEnchantment extends Enchantment {
 		      super(rarityIn, EnchantmentTarget.WEAPON, slots);
 		   }
 
-		   /**
-		    * Returns the minimal value of enchantability needed on the enchantment level passed.
-		    */
+		   // Returns the minimal value of enchantability needed on the enchantment level passed.
 		   public int getMinEnchantability(int enchantmentLevel) {
 		      return 25;
 		   }
@@ -24,10 +22,7 @@ public class GroundedEdgeEnchantment extends Enchantment {
 		   public int getMaxEnchantability(int enchantmentLevel) {
 		      return this.getMinEnchantability(enchantmentLevel) + 40;
 		   }
-
-		   /**
-		    * Returns the maximum level that the enchantment can have.
-		    */
+		   // Returns the maximum level that the enchantment can have.
 		   public int getMaxLevel() {
 		      return 3;
 		   }
@@ -37,6 +32,6 @@ public class GroundedEdgeEnchantment extends Enchantment {
 			   boolean enchantAll = ConfigRegistry.COMMON.getConfig().enchantments.enchantAllWeapons;
 			   boolean isAxe = stack.getItem() instanceof AxeItem;
 			   boolean canApply = super.isAcceptableItem(stack);
-			   return isAxe || canApply || enchantAll ? ConfigRegistry.COMMON.getConfig().enchantments.enableGroundedEdge : false;
+			   return (isAxe || canApply || enchantAll) && ConfigRegistry.COMMON.getConfig().enchantments.enableGroundedEdge;
 		}
 }

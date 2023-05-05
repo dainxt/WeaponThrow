@@ -40,5 +40,4 @@ public class PacketHandler {
             ServerPlayNetworking.send(player, packet.getIdentifier(), packet.getBuf());
         }
 	}
-	
 }
