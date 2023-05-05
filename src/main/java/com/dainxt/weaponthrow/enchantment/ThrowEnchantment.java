@@ -13,21 +13,14 @@ public class ThrowEnchantment extends Enchantment {
 		   public ThrowEnchantment(Enchantment.Rarity rarityIn, EquipmentSlot... slots) {
 		      super(rarityIn, EnchantmentTarget.WEAPON, slots);
 		   }
-
-		   /**
-		    * Returns the minimal value of enchantability needed on the enchantment level passed.
-		    */
+		   // Returns the minimal value of enchantability needed on the enchantment level passed.
 		   public int getMinPower(int enchantmentLevel) {
 		      return 10;
 		   }
-
 		   public int getMaxPower(int enchantmentLevel) {
 		      return this.getMinPower(enchantmentLevel) + 40;
 		   }
-
-		   /**
-		    * Returns the maximum level that the enchantment can have.
-		    */
+		   // Returns the maximum level that the enchantment can have.
 		   public int getMaxLevel() {
 		      return 3;
 		   }
@@ -37,6 +30,6 @@ public class ThrowEnchantment extends Enchantment {
 			   boolean enchantAll = ConfigRegistry.COMMON.getConfig().enchantments.enchantAllWeapons;
 			   boolean isAxe = stack.getItem() instanceof AxeItem;
 			   boolean canApply = super.isAcceptableItem(stack);
-			   return isAxe || canApply || enchantAll ? ConfigRegistry.COMMON.getConfig().enchantments.enableThrow : false;
+			   return (isAxe || canApply || enchantAll) && ConfigRegistry.COMMON.getConfig().enchantments.enableThrow;
 			}
 }

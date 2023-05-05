@@ -13,6 +13,5 @@ public interface OnStartPlayerTick {
             }
 
     });
- 
     void interact(PlayerEntity entity);
 }

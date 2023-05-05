@@ -45,9 +45,6 @@ public class WeaponThrowRenderer extends FlyingItemEntityRenderer<WeaponThrowEnt
 				this.itemRenderer.renderItem(entityIn.getStack(), ModelTransformation.Mode.FIXED,
 						packedLightIn, OverlayTexture.DEFAULT_UV, matrixStackIn, bufferIn, entityIn.getId());
 			}
-		
 		matrixStackIn.pop();
-
 	}
-
 }

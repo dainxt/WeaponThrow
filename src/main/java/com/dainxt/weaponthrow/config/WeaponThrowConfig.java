@@ -71,7 +71,7 @@ public class WeaponThrowConfig implements ConfigData {
 		@ConfigEntry.Gui.CollapsibleObject
 	    public ToolMultipliers tools = new ToolMultipliers();
 		
-		public class ToolMultipliers implements ConfigData {
+		public static class ToolMultipliers implements ConfigData {
 			public double pickaxeMultiplier = 0.8D;
 			public double axeMultiplier = 1.2D;
 			public double swordMultiplier = 1.D;
@@ -82,7 +82,7 @@ public class WeaponThrowConfig implements ConfigData {
 		@ConfigEntry.Gui.CollapsibleObject
 	    public DamageMultipliers damages = new DamageMultipliers();
 		
-		public class DamageMultipliers implements ConfigData {
+		public static class DamageMultipliers implements ConfigData {
 			public double baseDamageMultiplier = 0.25D;
 			public double stackDamageMultiplier = 0.0D;
 			public double modifiedDamageMultiplier = 0.50D;
@@ -91,7 +91,7 @@ public class WeaponThrowConfig implements ConfigData {
 		@ConfigEntry.Gui.CollapsibleObject
 	    public VelocityMultipliers velocities = new VelocityMultipliers();
 		
-		public class VelocityMultipliers implements ConfigData {
+		public static class VelocityMultipliers implements ConfigData {
 			public double baseVelocityMultiplier = 0.25D;
 			public double stackVelocityMultiplier = 0.005D;
 			public double modifiedVelocityMultiplier = 0.4D;
@@ -100,7 +100,7 @@ public class WeaponThrowConfig implements ConfigData {
 		@ConfigEntry.Gui.CollapsibleObject
 	    public ExhaustionMultipliers exhaustions = new ExhaustionMultipliers();
 		
-		public class ExhaustionMultipliers implements ConfigData {
+		public static class ExhaustionMultipliers implements ConfigData {
 			public double baseExhaustionMultiplier = 0.075D;
 			public double stackExhaustionMultiplier = 0.01D;
 			public double modifiedExhaustionMultiplier = 2.0D;

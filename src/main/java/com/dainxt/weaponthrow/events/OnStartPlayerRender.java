@@ -6,7 +6,6 @@ import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.entity.player.PlayerEntity;
 
 public interface OnStartPlayerRender {
-	 
     Event<OnStartPlayerRender> EVENT = EventFactory.createArrayBacked(OnStartPlayerRender.class,
         (listeners) -> (renderer, player) -> {
             for (OnStartPlayerRender listener : listeners) {
@@ -14,6 +13,5 @@ public interface OnStartPlayerRender {
             }
 
     });
- 
     void interact(PlayerEntityRenderer renderer, PlayerEntity entity);
 }

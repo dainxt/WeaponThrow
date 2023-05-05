@@ -11,8 +11,6 @@ public class ConfigRegistry {
 	public static ConfigHolder<WeaponThrowConfig> COMMON;
 	
 	public static void registerConfig() {
-		
 		COMMON = AutoConfig.register(WeaponThrowConfig.class, GsonConfigSerializer::new);
 	}
-	
 }

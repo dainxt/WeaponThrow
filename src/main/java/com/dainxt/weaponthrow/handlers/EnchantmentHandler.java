@@ -20,8 +20,5 @@ public class EnchantmentHandler {
 	public static final Enchantment GRAVITY = Registry.register(Registry.ENCHANTMENT, new Identifier(WeaponThrow.MODID, "gravity"), new GravityEnchantment(Enchantment.Rarity.VERY_RARE, EquipmentSlot.MAINHAND));
 	public static final Enchantment RETURN = Registry.register(Registry.ENCHANTMENT, new Identifier(WeaponThrow.MODID, "return"), new ReturnEnchantment(Enchantment.Rarity.RARE, EquipmentSlot.MAINHAND));
 	
-	public static void registerEnchantments() {
-		
-	}
-	
+	public static void registerEnchantments() {}
 }
