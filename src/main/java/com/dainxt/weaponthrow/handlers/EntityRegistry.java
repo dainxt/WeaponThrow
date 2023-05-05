@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
@@ -14,7 +15,7 @@ public class EntityRegistry {
 
 	public static final EntityType<WeaponThrowEntity> WEAPONTHROW = Registry.register(
 	        Registry.ENTITY_TYPE,
-	        new Identifier(WeaponThrow.MODID),
+	        new Identifier(WeaponThrow.MODID, "weaponthrow"),
 	        FabricEntityTypeBuilder.<WeaponThrowEntity>create(SpawnGroup.MISC, WeaponThrowEntity::new).trackRangeBlocks(4).trackedUpdateRate(20).dimensions(EntityDimensions.fixed(0.5F, 0.5F)).build()
 	);
 

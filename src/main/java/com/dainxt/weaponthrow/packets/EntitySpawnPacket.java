@@ -2,6 +2,7 @@ package com.dainxt.weaponthrow.packets;
 
 import java.util.UUID;
 
+import com.dainxt.weaponthrow.WeaponThrow;
 import com.dainxt.weaponthrow.handlers.PacketHandler;
 
 import io.netty.buffer.Unpooled;
@@ -12,6 +13,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
@@ -123,7 +125,7 @@ public class EntitySpawnPacket {
 				Entity e = et.create(MinecraftClient.getInstance().world);
 				if (e == null)
 					throw new IllegalStateException("Failed to create instance of entity \"" + Registry.ENTITY_TYPE.getId(et) + "\"!");
-				e.updateTrackedPosition(pos.x,pos.y,pos.z);
+				e.updateTrackedPosition(pos);
 				e.setPos(pos.x, pos.y, pos.z);
 				e.setPitch(pitch);
 				e.setYaw(yaw);

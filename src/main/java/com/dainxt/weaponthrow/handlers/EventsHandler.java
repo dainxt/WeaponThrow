@@ -3,16 +3,16 @@ package com.dainxt.weaponthrow.handlers;
 import java.util.UUID;
 
 import com.dainxt.weaponthrow.capabilities.PlayerThrowData;
-import com.dainxt.weaponthrow.interfaces.IPlayerEntityMixin;
-import com.dainxt.weaponthrow.projectile.WeaponThrowEntity;
 import com.dainxt.weaponthrow.events.OnApplySlow;
 import com.dainxt.weaponthrow.events.OnFOVUpdate;
 import com.dainxt.weaponthrow.events.OnHeldItemRender;
 import com.dainxt.weaponthrow.events.OnStartPlayerRender;
 import com.dainxt.weaponthrow.events.OnStartPlayerTick;
+import com.dainxt.weaponthrow.interfaces.IPlayerEntityMixin;
 import com.dainxt.weaponthrow.packets.CPacketThrow;
 import com.dainxt.weaponthrow.packets.CPacketThrow.State;
 import com.dainxt.weaponthrow.packets.SPacketThrow;
+import com.dainxt.weaponthrow.projectile.WeaponThrowEntity;
 import com.google.common.collect.Multimap;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -41,25 +41,29 @@ import net.minecraft.util.math.Vec3f;
 public class EventsHandler{
 	
 	public static boolean wasPressed = false;
-
+	
+	//public static int clientSideCharge = 0;
+	
 	public static void onThrowItem(ServerPlayerEntity serverplayer, CPacketThrow.State action){
-
-
+		
+		
+		
+		PlayerEntity player = (PlayerEntity) serverplayer;
 		ServerWorld world = serverplayer.getWorld();
-		ItemStack stack = ((PlayerEntity) serverplayer).getMainHandStack();
+		ItemStack stack = player.getMainHandStack();
 		
 		boolean isThrowable = ConfigRegistry.COMMON.get().experimental.shouldThrowItemsToo;
 		
 		Multimap<EntityAttribute, EntityAttributeModifier> multimap = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
 		boolean haveAttributes = multimap.containsKey(EntityAttributes.GENERIC_ATTACK_DAMAGE) || multimap.containsKey(EntityAttributes.GENERIC_ATTACK_SPEED);
 		
-		PlayerThrowData data = ((IPlayerEntityMixin) (PlayerEntity) serverplayer).getThrowPower();
+		PlayerThrowData data = ((IPlayerEntityMixin)player).getThrowPower();
 		
 		if ((isThrowable || haveAttributes) && !stack.isEmpty()) {
 			
 			boolean cdConfig = ConfigRegistry.COMMON.get().general.notUseWhenCooldown;
 			
-			if(!(((PlayerEntity) serverplayer).getItemCooldownManager().getCooldownProgress(stack.getItem(), 1.0F) > 0 && cdConfig)) {
+			if(!(player.getItemCooldownManager().getCooldownProgress(stack.getItem(), 1.0F) > 0 && cdConfig)) {
 
 				data.setAction(action);
 				
@@ -71,11 +75,13 @@ public class EventsHandler{
 
 					float baseThrow = 0;
 					float baseExhaustion = 0.05F;
-
+					
+					//float modThrow = 1.F - (data.getChargeTime()/(float)PlayerThrowData.getMaximumCharge(player));
+					
 					float modThrow = 1.0F;
 					
-					if(Math.signum(PlayerThrowData.getMaximumCharge((PlayerEntity) serverplayer)) != 0.0F) {
-						modThrow = 1.F - (data.getChargeTime()/(float)PlayerThrowData.getMaximumCharge((PlayerEntity) serverplayer));
+					if(Math.signum(PlayerThrowData.getMaximumCharge(player)) != 0.0F) {
+						modThrow = 1.F - (data.getChargeTime()/(float)PlayerThrowData.getMaximumCharge(player));
 					}
 					
 					data.resetCharging();
@@ -87,8 +93,8 @@ public class EventsHandler{
 					}
 					
 					if(haveAttributes) {
-						baseThrow = 20/ ((PlayerEntity) serverplayer).getAttackCooldownProgressPerTick();
-						baseExhaustion = ((PlayerEntity) serverplayer).getAttackCooldownProgressPerTick()/20;
+						baseThrow = 20/player.getAttackCooldownProgressPerTick();
+						baseExhaustion = player.getAttackCooldownProgressPerTick()/20;
 					}
 					
 					if(baseThrow>0) {
@@ -101,7 +107,7 @@ public class EventsHandler{
 
 						
 						if(haveAttributes) {
-							baseDamage = (float) ((PlayerEntity) serverplayer).getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
+							baseDamage = (float) player.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
 							
 							int types = 0;
 							if(stack.getItem() instanceof AxeItem) {
@@ -133,7 +139,7 @@ public class EventsHandler{
 							toolMultiplier = 1.0F;
 						}
 						
-						int size = ((PlayerEntity) serverplayer).isSneaking() ? stack.getCount() : 1;
+						int size = player.isSneaking() ? stack.getCount() : 1;
 						
 						double bDamageMul = ConfigRegistry.COMMON.get().multipliers.damages.baseDamageMultiplier;
 						double sDamageMul = ConfigRegistry.COMMON.get().multipliers.damages.stackDamageMultiplier;	
@@ -153,9 +159,9 @@ public class EventsHandler{
 			            double totalExhaustion = (baseExhaustion)*(1*bExhaustionMul + modThrow*mExhaustionMul) + (size*sExhaustionMul);
 			            totalExhaustion*=toolMultiplier;
 			            
-						WeaponThrowEntity throwedEntity = new WeaponThrowEntity(world, (PlayerEntity) serverplayer, shouldDestroy, (float) totalDamage, stack.split(size));
-						throwedEntity.setVelocity((PlayerEntity) serverplayer, ((PlayerEntity) serverplayer).getPitch(), ((PlayerEntity) serverplayer).getYaw(), 0.0F, (float) totalVelocity, 1.0F);
-						((PlayerEntity) serverplayer).addExhaustion((float) totalExhaustion);
+						WeaponThrowEntity throwedEntity = new WeaponThrowEntity(world, player, shouldDestroy, (float) totalDamage, stack.split(size));
+						throwedEntity.setVelocity(player, player.getPitch(), player.getYaw(), 0.0F, (float) totalVelocity, 1.0F);
+						player.addExhaustion((float) totalExhaustion);
 
 			            
 			            world.spawnEntity(throwedEntity);
@@ -166,7 +172,7 @@ public class EventsHandler{
 					}
 				}
 				
-				((IPlayerEntityMixin) (PlayerEntity) serverplayer).setThrowPower(data);
+				((IPlayerEntityMixin)player).setThrowPower(data);
 			
 			}
 
@@ -185,7 +191,7 @@ public class EventsHandler{
 			if(!player.world.isClient()) {
 				PlayerThrowData cap = ((IPlayerEntityMixin)player).getThrowPower();
 
-				boolean attacked = player.getAttackCooldownProgress(0.0F) < 1.0F;
+				boolean attacked = player.getAttackCooldownProgress(0.0F) < 1.0F ? true : false;
 				boolean cdConfig = ConfigRegistry.COMMON.get().general.notUseWhenCooldown;
 				
 				boolean changedItem = !ItemStack.areEqual(cap.getChargingStack(), player.getMainHandStack());
@@ -221,7 +227,6 @@ public class EventsHandler{
 	}
 	
 	public static void onSeverUpdate(UUID playerUUID, int maxChargeTime, boolean isCharging) {
-		assert MinecraftClient.getInstance().world != null;
 		PlayerEntity playerentity = MinecraftClient.getInstance().world.getPlayerByUuid(playerUUID);
 		if(playerentity != null) {
 			
@@ -297,11 +302,20 @@ public class EventsHandler{
 			float f = amount;
 			
 			 if(isCharging) {
-
+				
+				 
+		         //int i = (int) (EventsHandler.clientSideCharge);
+		         
+		         //float f1 = (float)i / maxChargeTime;
+		         
 		         float f1 = 1.0F;
-
+		         
+		         /*if(Math.signum(maxChargeTime) != 0.0F) {
+					 f1 =(float)i / maxChargeTime;
+				 }*/
+		         
 		         if(Math.signum(maxChargeTime) != 0.0F && chargeTime > 0) {
-					 float lerp = MathHelper.lerp(MinecraftClient.getInstance().getTickDelta(), chargeTime+1, chargeTime);
+		        	 float lerp = MathHelper.lerp(MinecraftClient.getInstance().getTickDelta(), chargeTime+1, chargeTime);
 					 f1 = MathHelper.clamp(1.0F-(float)lerp / maxChargeTime, 0.F, 1.0F);
 				 }
 		         

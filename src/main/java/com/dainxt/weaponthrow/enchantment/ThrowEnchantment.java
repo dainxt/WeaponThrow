@@ -37,6 +37,6 @@ public class ThrowEnchantment extends Enchantment {
 			   boolean enchantAll = ConfigRegistry.COMMON.getConfig().enchantments.enchantAllWeapons;
 			   boolean isAxe = stack.getItem() instanceof AxeItem;
 			   boolean canApply = super.isAcceptableItem(stack);
-			   return (isAxe || canApply || enchantAll) && ConfigRegistry.COMMON.getConfig().enchantments.enableThrow;
+			   return isAxe || canApply || enchantAll ? ConfigRegistry.COMMON.getConfig().enchantments.enableThrow : false;
 			}
 }

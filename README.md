@@ -1,4 +1,4 @@
-# WeaponThrow
+# WeaponThrowLite
 Adds the ability to throw all your weapons. As an addition you can enable throwing all the items.
 
 The project is available here
@@ -13,19 +13,11 @@ compileOnly fg.deobf("curse.maven:weaponthrow-408332:3458711")
 ```
 When the gradle project is refreshed it will download WeaponThrow 4.5 for 1.16.4/5 and can be referenced by the project. More information about syntax is founded on the cursemaven page.
 
-Modders may evaluate:
+Modders may evaluate the fabric equivalent of this statement:
 ```
 ModList.get().isLoaded("weaponthrow")
 ```
 Before every reference made into the code.
 
-## On-board forge events.
-Inside there are 3 events that could help implementing the mod on other mods.
-
-WeaponThrowEvent.TestThrow: Can be used to test the throwability of such weapon or item.
-
-WeaponThrowEvent.OnThrow: Can be used to change the damage, velocity and exhaustion taken by player. 
-
-WeaponThrowEvent.OnImpact: Can be used to modify the impact with an entity or a block.
 
 

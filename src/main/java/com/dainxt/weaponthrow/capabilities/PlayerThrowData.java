@@ -1,5 +1,6 @@
 package com.dainxt.weaponthrow.capabilities;
 
+import com.dainxt.weaponthrow.WeaponThrow;
 import com.dainxt.weaponthrow.handlers.ConfigRegistry;
 import com.dainxt.weaponthrow.packets.CPacketThrow;
 import com.dainxt.weaponthrow.packets.CPacketThrow.State;
